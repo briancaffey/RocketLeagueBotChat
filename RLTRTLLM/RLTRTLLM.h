@@ -21,9 +21,10 @@ class RLTRTLLM: public BakkesMod::Plugin::BakkesModPlugin
 	void onLoad() override;
 	//void onUnload() override; // Uncomment and implement if you need a unload method
 	void makeRequest();
-	void Replay(std::string name);
-	void NotReplay(std::string name);
+	void sendMessage(std::string message);
 	void onStatEvent(void* params);
+	void appendToPrompt(std::string message, std::string role);
+	std::string sanitizeMessage(std::string message);
 
 public:
 	void RenderSettings() override; // Uncomment if you wanna render your own tab in the settings menu
