@@ -15,16 +15,29 @@ class RLTRTLLM: public BakkesMod::Plugin::BakkesModPlugin
 {
 
 	//std::shared_ptr<bool> enabled;
-	std::string mes = "";
+	std::string message_from_llm = "";
+	std::string sanitized_message = ""; 
+	bool first_touch = false;
+
+	// bot name -- updated when the game starts
+	std::string bot_name = "AI";
+	std::string player_name = "ME";
 
 	//Boilerplate
 	void onLoad() override;
 	//void onUnload() override; // Uncomment and implement if you need a unload method
 	void makeRequest();
 	void sendMessage(std::string message);
+	void onStatTickerMessage(void* params);
 	void onStatEvent(void* params);
 	void appendToPrompt(std::string message, std::string role);
+
+	// these methods are used for santizing unwanted characters from LLM responses
+	std::string removeEmojiCharacters(std::string input);
+	std::string removeDoubleQuotes(std::string str);
+	std::string removeTag(std::string input);
 	std::string sanitizeMessage(std::string message);
+
 
 public:
 	void RenderSettings() override; // Uncomment if you wanna render your own tab in the settings menu

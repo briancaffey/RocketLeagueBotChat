@@ -28,7 +28,10 @@ void RLTRTLLM::RenderSettings() {
     CVarWrapper messageJsonStringCVar = cvarManager->getCvar("message_json_string");
     if (!messageJsonStringCVar) { return; }
     std::string message_json_string = messageJsonStringCVar.getStringValue();
-    if (ImGui::InputTextMultiline("MessageJson", &message_json_string)) {
+
+    // set the dimensions of the 
+    ImVec2 dimensions = ImVec2(704, 900);
+    if (ImGui::InputTextMultiline("MessageJson", &message_json_string, dimensions)) {
         seedCvar.setValue(message_json_string);
     }
 }
