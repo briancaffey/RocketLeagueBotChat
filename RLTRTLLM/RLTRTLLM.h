@@ -14,7 +14,7 @@ class RLTRTLLM: public BakkesMod::Plugin::BakkesModPlugin
 	//,public PluginWindowBase // Uncomment if you want to render your own plugin window
 {
 
-	//std::shared_ptr<bool> enabled;
+	// std::shared_ptr<bool> enabled;
 	std::string message_from_llm = "";
 	std::string sanitized_message = ""; 
 	bool first_touch = false;
@@ -23,14 +23,17 @@ class RLTRTLLM: public BakkesMod::Plugin::BakkesModPlugin
 	std::string bot_name = "AI";
 	std::string player_name = "ME";
 
-	//Boilerplate
+	// Boilerplate
 	void onLoad() override;
-	//void onUnload() override; // Uncomment and implement if you need a unload method
+	// void onUnload() override; // Uncomment and implement if you need a unload method
 	void makeRequest();
 	void sendMessage(std::string message);
 	void onStatTickerMessage(void* params);
 	void onStatEvent(void* params);
 	void appendToPrompt(std::string message, std::string role);
+
+	// this splits long sentences into small chunks, splitting on spaces
+	std::vector<std::string> splitIntoSmallStrings(const std::string& txt, int messageSize);
 
 	// these methods are used for santizing unwanted characters from LLM responses
 	std::string removeEmojiCharacters(std::string input);

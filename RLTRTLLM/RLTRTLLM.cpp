@@ -20,8 +20,12 @@ void RLTRTLLM::onLoad()
 	// !! Enable debug logging by setting DEBUG_LOG = true in logging.h !!
 	DEBUGLOG("RLTRTLLM debug mode enabled");
 
+	std::string ai_player = "You are an elite AI player in the car soccer game Rocket League. ";
+	std::string one_v_one = "You are playing a 1v1 match against a human player. ";
+	std::string instructions = "You will send short chat messages to your human opponent in response to what happens in the game. ";
+	std::string details = "Respond to the human player with brief messages no more than 12 words long.";
 	// initial system prompt
-	std::string initial_system_prompt = "You are an AI player in the car soccer game Rocket League. \nYou are playing a 1v1 match against an inferior human player. \nYou will send short chat messages to your human opponent in response to what happens in the game.";
+	std::string initial_system_prompt = ai_player + one_v_one + instructions + details;
 	
 	// messages (including system prompt and chat history) are stored in a cvar that holds a json string
 	cvarManager->registerCvar("message_json_string", "[]");
@@ -66,7 +70,7 @@ void RLTRTLLM::onLoad()
 		[](std::string a, std::string b) {
 				return a + " " + b;
 			});
-		gameWrapper->LogToChatbox(message, this->bot_name);
+		gameWrapper->LogToChatbox(message, "RLB0T24");
 		}, "", PERMISSION_ALL);
 
 	// Triggered with Console for testing
@@ -92,16 +96,10 @@ void RLTRTLLM::onLoad()
 			onStatEvent(params);
 		});
 
-	// A simple console command for testing - used for debugging
-	cvarManager->registerNotifier("TestCommand", [this](std::vector<std::string> args) {
-		// add logic here
-		}, "", PERMISSION_ALL);
-
 	// hook the start of a round for setting player names
 	gameWrapper->HookEventWithCallerPost<ServerWrapper>("Function TAGame.GameMetrics_TA.StartRound",
 		[this](ServerWrapper caller, void* params, std::string eventname) {
 			// get the names of the human player (0) and the bot player (1)
-			// TODO: find another event to hook for setting these values
 			ServerWrapper sw = gameWrapper->GetGameEventAsServer();
 			ArrayWrapper cars = sw.GetCars();
 			CarWrapper playerCar = cars.Get(0);
@@ -111,6 +109,11 @@ void RLTRTLLM::onLoad()
 			this->bot_name = botName;
 			this->player_name = playerName;
 		});
+
+	// A simple console command for testing - used for debugging
+	cvarManager->registerNotifier("TestCommand", [this](std::vector<std::string> args) {
+		// add logic here
+		}, "", PERMISSION_ALL);
 }
 
 /**
@@ -202,8 +205,19 @@ void RLTRTLLM::makeRequest() {
 
 			gameWrapper->Execute([this](GameWrapper* gw) {
 
+				// split messages into smaller messages that are each under the length limit for in-game chat (120 characters)
+				std::vector<std::string> messages = splitIntoSmallStrings(this->sanitized_message, 120);
+
+
+				// Print the result
+				for (size_t i = 0; i < messages.size(); ++i) {
+					LOG("string: {}", messages[i]);
+					// log each message to the chat box
+					gameWrapper->LogToChatbox(messages[i], this->bot_name);
+					LOG("string logged to chat box");
+				}
+
 				// displays the message on the HUD
-				gameWrapper->LogToChatbox(this->sanitized_message, this->bot_name);
 
 				// add the response to the messages array to keep it in chat history
 				appendToPrompt(this->message_from_llm, "assistant");
@@ -333,18 +347,14 @@ void RLTRTLLM::onStatTickerMessage(void* params) {
 
 	// handle different events like scoring a goal or making a save
 	if (statEvent.GetEventName() == "Goal") {
-		LOG("A goal was scored");
 
 		// was the goal scored by the human player or the bot?
 		if (playerPRI.memory_address == receiver.memory_address) {
 			appendToPrompt("Your human opponent just scored a goal against you! " + score_sentence, "user");
-			makeRequest();
 		}
 		else {
 			appendToPrompt("You just scored a goal against the human player! " + score_sentence, "user");
-			makeRequest();
 		}
-
 	} else if (statEvent.GetEventName() == "Demolish") {
 		if (!receiver) { LOG("Null reciever PRI"); return; }
 		if (!victim) { LOG("Null victim PRI"); return; }
@@ -352,11 +362,9 @@ void RLTRTLLM::onStatTickerMessage(void* params) {
 		// Compare the primary player to the victim
 		if (playerPRI.memory_address == receiver.memory_address) {
 			appendToPrompt("Your human opponent demolished your car! You will now respawn.");
-			makeRequest();
 		}
 		else {
 			appendToPrompt("You just demolished the human player's car! The human player will respawn.");
-			makeRequest();
 		}
 	} else if (statEvent.GetEventName() == "OwnGoal") {
 		if (!receiver) { LOG("Null reciever PRI"); return; }
@@ -364,22 +372,18 @@ void RLTRTLLM::onStatTickerMessage(void* params) {
 		// Compare the primary player to the victim
 		if (playerPRI.memory_address == receiver.memory_address) {
 			appendToPrompt("Your human opponent scored on their own goal by accident.");
-			makeRequest();
 		}
 		else {
 			appendToPrompt("You scored a goal in your own goal.");
-			makeRequest();
 		}
 	}
 	else if (statEvent.GetEventName() == "Center") {
 
 		if (playerPRI.memory_address == receiver.memory_address) {
 			appendToPrompt("The human opponent just centered the ball on your goal.");
-			makeRequest();
 		}
 		else {
 			appendToPrompt("You just centered the ball near your human opponent's goal.");
-			makeRequest();
 		}
 	}
 	else if (statEvent.GetEventName() == "Save") {
@@ -387,13 +391,32 @@ void RLTRTLLM::onStatTickerMessage(void* params) {
 		// determine which player made the save
 		if (playerPRI.memory_address == receiver.memory_address) {
 			appendToPrompt("The human opponent just saved the ball from going in their goal.");
-			makeRequest();
 		}
 		else {
 			appendToPrompt("You just saved the ball from going in your goal.");
-			makeRequest();
 		}
 	}
+	// make a request to the LLM server once the prompt has been updated with a new event
+	makeRequest();
+}
+
+std::vector<std::string> RLTRTLLM::splitIntoSmallStrings(const std::string& txt, int messageSize) {
+	std::istringstream iss(txt);
+	std::vector<std::string> substrings;
+	std::string word, accumulated;
+
+	while (iss >> word) {
+		if ((accumulated.length() + word.length() + 1) <= messageSize) { // +1 accounts for space
+			accumulated += ' ' + word;
+		}
+		else {
+			substrings.push_back(accumulated);
+			accumulated = word;
+		}
+	}
+	substrings.push_back(accumulated); // Add the last accumulated string
+
+	return substrings;
 }
 
 /**
