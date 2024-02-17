@@ -15,7 +15,7 @@ public:
 	virtual ~PluginWindowBase() = default;
 
 	bool isWindowOpen_ = false;
-	std::string menuTitle_ = "RLTRTLLM";
+	std::string menuTitle_ = "RocketLeagueBotChat";
 
 	std::string GetMenuName() override;
 	std::string GetMenuTitle() override;

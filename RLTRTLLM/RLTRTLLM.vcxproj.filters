@@ -81,7 +81,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>PCH</Filter>
     </ClCompile>
-    <ClCompile Include="RLTRTLLM.cpp">
+    <ClCompile Include="RocketLeagueBotChat.cpp">
       <Filter>Plugin\src</Filter>
     </ClCompile>
     <ClCompile Include="GuiBase.cpp">
@@ -140,7 +140,7 @@
     <ClInclude Include="pch.h">
       <Filter>PCH</Filter>
     </ClInclude>
-    <ClInclude Include="RLTRTLLM.h">
+    <ClInclude Include="RocketLeagueBotChat.h">
       <Filter>Plugin\header</Filter>
     </ClInclude>
     <ClInclude Include="logging.h">

@@ -3,7 +3,7 @@
 
 std::string SettingsWindowBase::GetPluginName()
 {
-	return "RLTRTLLM";
+	return "RocketLeagueBotChat";
 }
 
 void SettingsWindowBase::SetImGuiContext(uintptr_t ctx)
@@ -13,7 +13,7 @@ void SettingsWindowBase::SetImGuiContext(uintptr_t ctx)
 
 std::string PluginWindowBase::GetMenuName()
 {
-	return "RLTRTLLM";
+	return "RocketLeagueBotChat";
 }
 
 std::string PluginWindowBase::GetMenuTitle()

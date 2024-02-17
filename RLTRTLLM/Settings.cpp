@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "RLTRTLLM.h"
+#include "RocketLeagueBotChat.h"
 
-void RLTRTLLM::RenderSettings() {
+void RocketLeagueBotChat::RenderSettings() {
     ImGui::TextUnformatted("Control the prompt that will generate words that the bot sends to chat.");
 
     CVarWrapper systemPromptCvar = cvarManager->getCvar("system_prompt");

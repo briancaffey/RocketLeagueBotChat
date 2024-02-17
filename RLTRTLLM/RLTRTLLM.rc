@@ -81,9 +81,9 @@ BEGIN
             VALUE "CompanyName", "TODO: <Company name>"
             VALUE "FileDescription", "TODO: <File description>"
             VALUE "FileVersion", stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD)
-            VALUE "InternalName", "RLTRTLLM.dll"
+            VALUE "InternalName", "RocketLeagueBotChat.dll"
             VALUE "LegalCopyright", "Copyright (C) 2020"
-            VALUE "OriginalFilename", "RLTRTLLM.dll"
+            VALUE "OriginalFilename", "RocketLeagueBotChat.dll"
             VALUE "ProductName", "TODO: <Product name>"
             VALUE "ProductVersion", stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD)
         END

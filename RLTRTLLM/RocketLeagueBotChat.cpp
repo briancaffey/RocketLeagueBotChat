@@ -1,7 +1,7 @@
 #pragma execution_character_set("utf-8")
 
 #include "pch.h"
-#include "RLTRTLLM.h"
+#include "RocketLeagueBotChat.h"
 
 #include <json.hpp>
 #include <regex>
@@ -9,16 +9,16 @@
 using json = nlohmann::json;
 
 
-BAKKESMOD_PLUGIN(RLTRTLLM, "Rocket League BotChat -- Powered by TensorRT-LLM", plugin_version, PLUGINTYPE_FREEPLAY);
+BAKKESMOD_PLUGIN(RocketLeagueBotChat, "Rocket League BotChat -- Powered by TensorRT-LLM", plugin_version, PLUGINTYPE_FREEPLAY);
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
 
-void RLTRTLLM::onLoad()
+void RocketLeagueBotChat::onLoad()
 {
 	_globalCvarManager = cvarManager;
 
 	// !! Enable debug logging by setting DEBUG_LOG = true in logging.h !!
-	DEBUGLOG("RLTRTLLM debug mode enabled");
+	DEBUGLOG("RocketLeagueBotChat debug mode enabled");
 
 	std::string ai_player = "You are an elite AI player in the car soccer game Rocket League. ";
 	std::string one_v_one = "You are playing a 1v1 match against a human player. ";
@@ -124,7 +124,7 @@ void RLTRTLLM::onLoad()
  * To send a message press F6 to bring up the console and type SendMessage <your message>
  * Your message will be added to the prompt as a new line and and then a new LLM request will be made
  */
-void RLTRTLLM::sendMessage(std::string message) {
+void RocketLeagueBotChat::sendMessage(std::string message) {
 	gameWrapper->LogToChatbox(message, this->player_name);
 	std::string message_to_add = "Your opponent said: " + message;
 	appendToPrompt(message_to_add, "user");
@@ -138,7 +138,7 @@ void RLTRTLLM::sendMessage(std::string message) {
  * It reads CVar values for the prompt, system prompt and other parameters for the LLM request
  * Requests are sent to the LLM and responses are sent to the chat box
  */
-void RLTRTLLM::makeRequest() {
+void RocketLeagueBotChat::makeRequest() {
 	if (!gameWrapper->IsInGame()) { return; }
 
 	CVarWrapper systemPromptCvar = cvarManager->getCvar("system_prompt");
@@ -243,7 +243,7 @@ void RLTRTLLM::makeRequest() {
  * adding new messages to the prompt from the user or assistant
  * should remove older messages. We still want to keep the system prompt
  */
-void RLTRTLLM::appendToPrompt(std::string message, std::string role = "user") {
+void RocketLeagueBotChat::appendToPrompt(std::string message, std::string role = "user") {
 	CVarWrapper messageJsonStringCVar = cvarManager->getCvar("message_json_string");
 	if (!messageJsonStringCVar) { return; }
 
@@ -272,7 +272,7 @@ void RLTRTLLM::appendToPrompt(std::string message, std::string role = "user") {
  * onStatEvent
  * 
  */
-void RLTRTLLM::onStatEvent(void* params) {
+void RocketLeagueBotChat::onStatEvent(void* params) {
 
 	// structure of a stat event
 	struct StatEventParams {
@@ -307,7 +307,7 @@ void RLTRTLLM::onStatEvent(void* params) {
  * 
  * Reference from Bakkesmod docs: https://wiki.bakkesplugins.com/functions/stat_events/
  */
-void RLTRTLLM::onStatTickerMessage(void* params) {
+void RocketLeagueBotChat::onStatTickerMessage(void* params) {
 
 	LOG("handling StatTickerMessage");
 
@@ -400,7 +400,7 @@ void RLTRTLLM::onStatTickerMessage(void* params) {
 	makeRequest();
 }
 
-std::vector<std::string> RLTRTLLM::splitIntoSmallStrings(const std::string& txt, int messageSize) {
+std::vector<std::string> RocketLeagueBotChat::splitIntoSmallStrings(const std::string& txt, int messageSize) {
 	std::istringstream iss(txt);
 	std::vector<std::string> substrings;
 	std::string word, accumulated;
@@ -422,7 +422,7 @@ std::vector<std::string> RLTRTLLM::splitIntoSmallStrings(const std::string& txt,
 /**
  * Remove emoji characters from a string
  */
-std::string RLTRTLLM::removeEmojiCharacters(std::string input) {
+std::string RocketLeagueBotChat::removeEmojiCharacters(std::string input) {
 	std::string result;
 	size_t i = 0;
 	while (i < input.length()) {
@@ -455,7 +455,7 @@ std::string RLTRTLLM::removeEmojiCharacters(std::string input) {
  * This function removes escaped double quotes from the a string (\")
  * 
  */
-std::string RLTRTLLM::removeDoubleQuotes(std::string str) {
+std::string RocketLeagueBotChat::removeDoubleQuotes(std::string str) {
 
 	// Create a regular expression to match all occurrences of ".
 	std::regex regex("\\\"");
@@ -469,7 +469,7 @@ std::string RLTRTLLM::removeDoubleQuotes(std::string str) {
 /**
  * Remove </sys> tag from string. This is the stop character included in responses from LLM
  */
-std::string RLTRTLLM::removeTag(std::string input) {
+std::string RocketLeagueBotChat::removeTag(std::string input) {
 	std::string result = input;
 	std::string toRemove = "</s>"; // The substring to find and remove
 	size_t pos = 0;
@@ -488,7 +488,7 @@ std::string RLTRTLLM::removeTag(std::string input) {
  *
  * Also removes the stop character </s> and fixes other issues with the format of the strings returned from the LLM
  */
-std::string RLTRTLLM::sanitizeMessage(std::string message) {
+std::string RocketLeagueBotChat::sanitizeMessage(std::string message) {
 
 	// remove emoji characters
 	std::string sanitized_message = message;
